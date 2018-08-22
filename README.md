@@ -99,3 +99,40 @@ There is no loopback implemented yet, so you need to close all the terminal wind
 
 In case the demo fails, close all three terminal windows and rerun the script.
 
+### First part of implementation is to obtain individual transformation matrices from our calculated DH Parameters table:
+- Create symbols for joint variables
+- Define Modified DH Transformation matrix
+- Create individual transformation matrices
+- Substitute the DH table values into the expression with the subs method
+- Create the transformaton matrix from the base frame to the end effector by composing the individual link transforms
+- Extract rotation matrices from the transformation matrices, in Sympy we are able to slice submatrices
+- Initialize an empty list to be used as service response
+- IK code starts here:
+- Contains joint angle positions, velocities, accelerations, and efforts. 
+- We will only use position field for a specific end-effector position
+- Extract end-effector position and orientation from request
+- px,py,pz = end-effector position
+- roll, pitch, yaw = end-effector orientation
+
+### Second part of implementation is to calculate the joint angles based on the position and orientation of the end-effector
+- We start by getting end effector rotation matrix
+- Create symbols for calculating the end effector rotation matrix
+- Calculate each rotation matrix about each axis
+- Obtain one single rotation matrix for the gripper by multiplying the yaw, pitch, and roll rotation matrices
+- Compensate for rotation discrepancy between DH parameters and Gazebo
+- Apply rotation error correction to align our DH parameters with that of the URDF file
+- Create a matrix of the gripper position from the positions extracted from the end-effector poses received from the request
+- We can now calculate the wrist center using the end-effector POSITION (EE) and the end-effector ROTATION (ROT_EE)
+- Finally calculate joint angles (thetas) using the Geometric IK method
+- Calculate theta1 usig the wrist center
+- Side-side-side triangle calculation for theta2 and theta3
+- Calculate sides a, b and c
+- Calculate correponding angles a, b and c
+- Derive theta2 and theta3
+- Get the rotation matrix from base_link to link3 by multiplying the rotation matrices 
+- extracted from the transformation matrices
+- Substitute the theta1,2,3 values into the rotation matrix from base_link to link3 using the subs method
+- Now we calculate the rotation matrix from three to six. For that we take the rotation matrix of the end effector
+- and multiply it by the inverse of the rotation matrix from base_link to link3
+- Our last step is to calculate theta4, theta5 and theta6
+- We calculate euler angles from rotation matrix
