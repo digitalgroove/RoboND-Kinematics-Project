@@ -1,6 +1,14 @@
 <launch>
   <node name="trajectory_sampler" pkg="kuka_arm" type="trajectory_sampler">
     <!--set demo value="false" when using IK_server-->
+
+    <!-- For demo mode make sure the value flag is set to "true" -->
+
+    <!-- For running the actual IK code it has to be "false" and then execute: -->
+    <!-- cd ~/catkin_ws/src/RoboND-Kinematics-Project/kuka_arm/scripts -->
+    <!-- rosrun kuka_arm IK_server.py -->
+
     <param name="demo" value="true" type="bool"/>
+
   </node>
 </launch>
