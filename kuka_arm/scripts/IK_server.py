@@ -200,9 +200,9 @@ def handle_calculate_IK(req):
             #
             # Our last step is to calculate theta4, theta5 and theta6
             # We calculate euler angles from rotation matrix
-            theta4 = atan2()
-            theta5 = atan2()
-            theta6 = atan2()
+            theta4 = atan2(R3_6[2,2], -R3_6[0,2])
+            theta5 = atan2(sqrt(R3_6[0,2]*R3_6[0,2] + R3_6[2,2]*R3_6[2,2]),R3_6[1,2])
+            theta6 = atan2(-R3_6[1,1], R3_6[1,0])
             #
             # 
             ######
