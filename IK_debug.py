@@ -144,13 +144,13 @@ def test_code(test_case):
     #
     ######
 
-    # Initialize an empty list to be used as service response
-    joint_trajectory_list = [] # it will contain the joint angle values that we calculate here
-    for x in xrange(0, len(req.poses)): # start a loop to go through all the end-effector poses received from the request
-        # IK code starts here
-        # Contains joint angle positions, velocities, accelerations, and efforts. 
-        # We will only use position field for a specific end-effector position
-        joint_trajectory_point = JointTrajectoryPoint() 
+    ## Initialize an empty list to be used as service response
+    #joint_trajectory_list = [] # it will contain the joint angle values that we calculate here
+    #for x in xrange(0, len(req.poses)): # start a loop to go through all the end-effector poses received from the request
+    #    # IK code starts here
+    #    # Contains joint angle positions, velocities, accelerations, and efforts. 
+    #    # We will only use position field for a specific end-effector position
+    #    joint_trajectory_point = JointTrajectoryPoint() 
 
 
     # Extract end-effector position and orientation from request
@@ -184,7 +184,7 @@ def test_code(test_case):
                     [     0,       0, 1]]) # YAW
     # 
     # Obtain one single rotation matrix for the gripper by multiplying the yaw, pitch, and roll rotation matrices
-    ROT_EE = ROT_z * ROZ_y * ROT_x
+    ROT_EE = ROT_z * ROT_y * ROT_x
     #
     # Compensate for rotation discrepancy between DH parameters and Gazebo
     # Apply rotation error correction to align our DH parameters with that of the URDF file
@@ -241,12 +241,12 @@ def test_code(test_case):
     # 
     ######
 
-    # Populate response for the IK request
-    # After calculating individual joint angles for a given eef pose,
-    # we populate the joint_trajectory_list and send back as a response       
-    # In the next line replace theta1,theta2...,theta6 by your joint angle variables
-    joint_trajectory_point.positions = [theta1, theta2, theta3, theta4, theta5, theta6]
-    joint_trajectory_list.append(joint_trajectory_point)
+    ## Populate response for the IK request
+    ## After calculating individual joint angles for a given eef pose,
+    ## we populate the joint_trajectory_list and send back as a response       
+    ## In the next line replace theta1,theta2...,theta6 by your joint angle variables
+    #joint_trajectory_point.positions = [theta1, theta2, theta3, theta4, theta5, theta6]
+    #joint_trajectory_list.append(joint_trajectory_point)
 
     ## 
     ########################################################################################
