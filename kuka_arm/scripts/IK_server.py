@@ -39,7 +39,7 @@ def handle_calculate_IK(req):
 	#
 	# Create Modified DH parameters
 	# KUKA KR210
-        s = {alpha0: 0, a0: 0, d1: 0.75
+        s = {alpha0: 0, a0: 0, d1: 0.75,
              alpha1: -pi/2, a1: 0.35, d2: 0, q2: q2-pi/2,
              alpha2: 0, a2: 1.25, d3: 0,
              alpha3: -pi/2, a3: -0.054, d4: 1.5,
@@ -94,7 +94,7 @@ def handle_calculate_IK(req):
         T5_6 = T5_6.subs(s)
         T6_G = T6_G.subs(s)
 
-        # Create the transformaton matrix from the base frame to the end effector by composing the individual link transforms
+        # Create the transformation matrix from the base frame to the end effector by composing the individual link transforms
         T0_G = T0_1 * T1_2 * T2_3 * T3_4 * T4_5 * T5_6 * T6_G
    
 	# Extract rotation matrices from the transformation matrices
@@ -150,7 +150,7 @@ def handle_calculate_IK(req):
                             [     0,       0, 1]]) # YAW
             # 
             # Obtain one single rotation matrix for the gripper by multiplying the yaw, pitch, and roll rotation matrices
-            ROT_EE = ROT_z * ROZ_y * ROT_x
+            ROT_EE = ROT_z * ROT_y * ROT_x
             #
             # Compensate for rotation discrepancy between DH parameters and Gazebo
             # Apply rotation error correction to align our DH parameters with that of the URDF file
