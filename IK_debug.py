@@ -74,7 +74,7 @@ def test_code(test_case):
     #
     # Create Modified DH parameters
     # KUKA KR210
-    s = {alpha0: 0, a0: 0, d1: 0.75
+    s = {alpha0: 0, a0: 0, d1: 0.75,
          alpha1: -pi/2, a1: 0.35, d2: 0, q2: q2-pi/2,
          alpha2: 0, a2: 1.25, d3: 0,
          alpha3: -pi/2, a3: -0.054, d4: 1.5,
@@ -129,7 +129,7 @@ def test_code(test_case):
     T5_6 = T5_6.subs(s)
     T6_G = T6_G.subs(s)
 
-    # Create the transformaton matrix from the base frame to the end effector by composing the individual link transforms
+    # Create the transformation matrix from the base frame to the end effector by composing the individual link transforms
     T0_G = T0_1 * T1_2 * T2_3 * T3_4 * T4_5 * T5_6 * T6_G
 
     # Extract rotation matrices from the transformation matrices
