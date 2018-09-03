@@ -131,43 +131,78 @@ def handle_calculate_IK(req):
                     req.poses[x].orientation.z, req.poses[x].orientation.w])
 
             ### Second part of implementation is to calculate the joint angles based on the position and orientation of the end-effector
-	    # We start by getting end effector rotation matrix
+	    # We start by getting end effector rotation matrix 
             #
             # Create symbols for calculating the end effector rotation matrix
+            r, p, y = symbols('r p y')
             #
             # Calculate each rotation matrix about each axis
+            ROT_x = Matrix([[1,      0,       0],
+                            [0, cos(r), -sin(r)],
+                            [0, sin(r),  cos(r)]]) # ROLL
+
+            ROT_y = Matrix([[ cos(p),      0,  sin(p)],
+                            [      0,      1,       0],
+                            [-sin(p),      0,  cos(p)]]) # PITCH
+
+            ROT_z = Matrix([[cos(y), -sin(y), 0],
+                            [sin(y),  cos(y), 0],
+                            [     0,       0, 1]]) # YAW
             # 
             # Obtain one single rotation matrix for the gripper by multiplying the yaw, pitch, and roll rotation matrices
+            ROT_EE = ROT_z * ROZ_y * ROT_x
             #
             # Compensate for rotation discrepancy between DH parameters and Gazebo
             # Apply rotation error correction to align our DH parameters with that of the URDF file
+            Rot_Error = ROT_z.subs(y, radians(180)) * ROT_y.subs(p, radians(-90))
+            ROT_EE = ROT_EE * Rot_Error
             #
             # Create a matrix of the gripper position from the positions extracted from the end-effector poses received from the request
+            ROT_EE = ROT_EE.subs({'r':roll, 'p':pitch, 'y':yaw})
+            EE = Matrix([[px],
+                        [py],
+                        [pz]])
             # 
             # We can now calculate the wrist center using the end-effector POSITION (EE) and the end-effector ROTATION (ROT_EE)
+            WC = EE - (0.303) * ROT_EE[:,2]
 	    #
 	    #
 	    # Finally calculate joint angles (thetas) using the Geometric IK method
-	    # Calculate theta1 usig the wrist center
+	    # Calculate theta1 using the wrist center
+            theta1 = atan2(WC[1],WC[0])
             #
             # Side-side-side triangle calculation for theta2 and theta3
             # Calculate sides a, b and c
+            side_a = 1.501
+            side_b = sqrt(pow((sqrt(WC[0] * WC[0] + WC[1] * WC[1]) - 0.35), 2) + pow((WC[2] - 0.75), 2))
+            side_c = 1.25
             # 
 	    # Calculate correponding angles a, b and c
+            angle_a = acos((side_b * side_b + side_c * side_c - side_a * side_a) / (2 * side_b * side_c))
+            angle_b = acos((side_a * side_a + side_c * side_c - side_b * side_b) / (2 * side_a * side_c))
+            angle_c = acos((side_a * side_a + side_b * side_b - side_c * side_c) / (2 * side_a * side_b))
             #
             # Derive theta2 and theta3
+            theta2 = pi / 2 - angle_a - atan2(WC[2] - 0.75, sqrt(WC[0] * WC[0] + WC[1] * WC [1]) - 0.35)
+            theta3 = pi / 2 - (angle_b + 0.036)  # 0.036 accounts for sag in link4 of -0.54m
             #
             # Get the rotation matrix from base_link to link3 by multiplying the rotation matrices 
             # extracted from the transformation matrices
+            R0_3 = T0_1[0:3,0:3] * T1_2[0:3,0:3] * T2_3[0:3,0:3]
             # 
             # Substitute the theta1,2,3 values into the rotation matrix from base_link to link3 using the subs method
+            R0_3 = R0_3.evalf(subs={q1: theta1, q2: theta2, q3: theta3})
             # 
             # Now we calculate the rotation matrix from three to six. For that we take the rotation matrix of the end effector
             # and multiply it by the inverse of the rotation matrix from base_link to link3
+            R3_6 = R0_3.inv("LU") * ROT_EE
             # 
             #
             # Our last step is to calculate theta4, theta5 and theta6
             # We calculate euler angles from rotation matrix
+            theta4 = atan2()
+            theta5 = atan2()
+            theta6 = atan2()
             #
             # 
             ######
