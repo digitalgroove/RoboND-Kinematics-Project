@@ -229,7 +229,7 @@ def test_code(test_case):
     # 
     # Now we calculate the rotation matrix from three to six. For that we take the rotation matrix of the end effector
     # and multiply it by the inverse of the rotation matrix from base_link to link3
-    R3_6 = R0_3.inv("LU") * ROT_EE
+    R3_6 = R0_3.transpose() * ROT_EE
     # 
     #
     # Our last step is to calculate theta4, theta5 and theta6
