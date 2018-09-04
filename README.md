@@ -37,7 +37,7 @@ Once Gazebo and rviz are up and running, make sure you see following in the gaze
 	- Dropbox right next to the robot
 	
 
-Once all these items are confirmed, open rviz window, hit Next button.
+Once all these items are confirmed, open rviz window, hit Next or Continue button.
 
 
 
@@ -50,40 +50,35 @@ Steps:
 - Create individual transformation matrices
 - Substitute the DH table values into the expression with the subs method
 - Create the transformaton matrix from the base frame to the end effector by composing the individual link transforms
-- Extract rotation matrices from the transformation matrices, in Sympy we are able to slice submatrices
 - Initialize an empty list to be used as service response
-- IK code starts here:
-- Contains joint angle positions, velocities, accelerations, and efforts. 
-- We will only use position field for a specific end-effector position
-- Extract end-effector position and orientation from request
-- px,py,pz = end-effector position
-- roll, pitch, yaw = end-effector orientation
+- Start a loop to go through all the end-effector poses received from the request
+- Get only trajectory points (positions) from the service message (it also contains velocities, accelerations, and efforts)
+- Extract end-effector position (px,py,pz) and orientation (roll, pitch, yaw) from the request
+
 
 ### Second part of implementation 
 **Goal is to calculate the joint angles based on the position and orientation of the end-effector:**
 
 Steps:
-- We start by getting end effector rotation matrix
+- Get end effector rotation matrix
 - Create symbols for calculating the end effector rotation matrix
 - Calculate each rotation matrix about each axis
 - Obtain one single rotation matrix for the gripper by multiplying the yaw, pitch, and roll rotation matrices
 - Compensate for rotation discrepancy between DH parameters and Gazebo
 - Apply rotation error correction to align our DH parameters with that of the URDF file
 - Create a matrix of the gripper position from the positions extracted from the end-effector poses received from the request
-- We can now calculate the wrist center using the end-effector POSITION (EE) and the end-effector ROTATION (ROT_EE)
-- Finally calculate joint angles (thetas) using the Geometric IK method
-- Calculate theta1 usig the wrist center
-- Side-side-side triangle calculation for theta2 and theta3
+- Now calculate the wrist center using the end-effector POSITION (EE) and the end-effector ROTATION (ROT_EE)
+
+Finally calculate joint angles (thetas) using the Geometric IK method:
+- Calculate theta1 using the wrist center
+- Do a side-side-side triangle calculation for theta2 and theta3
 - Calculate sides a, b and c
 - Calculate correponding angles a, b and c
 - Derive theta2 and theta3
-- Get the rotation matrix from base_link to link3 by multiplying the rotation matrices 
-- extracted from the transformation matrices
+- Get the rotation matrix from base_link to link3 by multiplying the rotation matrices extracted from the transformation matrices
 - Substitute the theta1,2,3 values into the rotation matrix from base_link to link3 using the subs method
-- Now we calculate the rotation matrix from three to six. For that we take the rotation matrix of the end effector
-- and multiply it by the inverse of the rotation matrix from base_link to link3
-- Our last step is to calculate theta4, theta5 and theta6
-- We calculate euler angles from rotation matrix
+- Calculate the rotation matrix from three to six. Take the rotation matrix of the end effector and multiply it by the inverse of the rotation matrix from base_link to link3
+- As last step calculate theta4, theta5 and theta6
 
 
 ### YouTube video
