@@ -46,7 +46,53 @@ Once all these items are confirmed, open rviz window, hit Next or Continue butto
 
 Steps:
 - Create symbols for joint variables
-- Define Modified DH Transformation matrix
+- Sketch the manipulator in its zero configuration for identifiying each parameter
+    - Label the joints from 1 to n
+    - Draw line on the centerline of each joint axis (cylinder center)
+    - Label each link from 0 (ground) to n
+    - Define directions for the positive Z axes (collinear to each joint axis, and shifted to one common point for the gripper joints)
+    - Define directions for the positive X axes (the X axis is defined by the common normals between Zi-1 and Zi)
+- Complete the DH parameter table in accordance to the manipulator configuration that was determined:
+    - Location (the "a's"):
+        - a1 is the distance from Z1 to Z2 measured along X1 = 0.35
+        - a2 is the distance from Z2 to Z3 measured along X2 = 1.25
+        - a3 is the distance from Z3 to Z4 measured along X3
+        - a4 (Z4 to Z5) = 0 (for collinear axes alpha and a are always 0)
+        - a5 (Z5 to Z6) = 0
+        - a6 (Z6 to ZG) = 0
+    - Link offsets (the "d's"):
+        - d1, the link offset, is the signed distance between from X0 to X1 meassured along Z1 (for collinear axes d1 is 0)
+        - d2 = 0
+        - d3 = 0
+        - d4, the link offset or signed distance between from X3 to X4 meassured along Z4
+        - d5 = 0
+        - d6 = 0
+        - dG =  the link offset or signed distance between from X6 to XG meassured along ZG
+    - Twist angles (the alphas) between Zi and Zi+1:
+        - α0, angle between Z0 and Z1 measured about x0 = 0
+        - α1, angle between Z1 and Z2 measured about x1 = -90
+        - α2, angle between Z2 and Z3 measured about x2 = 0
+        - α3, angle between Z3 and Z4 measured about x3 = -90
+        - α4, angle between Z4 and Z5 measured about x4 = 90
+        - α5, angle between Z5 and Z6 measured about x5 = -90
+        - α6, angle between Z6 and ZG measured about x6 = 0
+    - We got so far:
+![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/KR210-DH-parameters-table-so-far.jpg "DH-Parameter Table So Far Image")
+        
+    - We get numerical values for the a's and d's from the URDF file:2
+    - Note that for joint3 we got an constant offset of -90° between X1 and X2. Due to this we map the "a" values from the "x" value in the URDF file until joint2 and then we map the "z" values to our "a" values. For the "d" values it is the other way around.
+![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/KR210-reference-frame-URDF-to-DH-convension.jpg "Reference frame URDF to DH-convension")
+
+    - In code we can now establish a dictionary of our known DH parameter quantities:
+```
+        s = {alpha0: 0, a0: 0, d1: 0.75,
+             alpha1: -pi/2, a1: 0.35, d2: 0, q2: q2-pi/2,
+             alpha2: 0, a2: 1.25, d3: 0,
+             alpha3: -pi/2, a3: -0.054, d4: 1.5,
+             alpha4: pi/2, a4: 0, d5: 0,
+             alpha5: -pi/2, a5: 0, d6: 0,
+             alpha6: 0, a6: 0, d7: 0.303, q7: 0}h
+```
 - Create individual transformation matrices
 - Substitute the DH table values into the expression with the subs method
 - Create the transformaton matrix from the base frame to the end effector by composing the individual link transforms
