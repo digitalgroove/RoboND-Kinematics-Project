@@ -96,17 +96,6 @@ def handle_calculate_IK(req):
 
         # Create the transformation matrix from the base frame to the end effector by composing the individual link transforms
         T0_G = T0_1 * T1_2 * T2_3 * T3_4 * T4_5 * T5_6 * T6_G
-   
-	# Extract rotation matrices from the transformation matrices
-        # In Sympy we are able to slice submatrices 
-	R0_1 = T0_1[0:3,0:3]
-        R1_2 = T1_2[0:3,0:3]
-        R2_3 = T2_3[0:3,0:3]
-        R3_4 = T3_4[0:3,0:3]
-        R4_5 = T4_5[0:3,0:3]
-        R5_6 = T5_6[0:3,0:3]
-
-        R6_G = T6_G[0:3,0:3]
 	#
         ######
 
