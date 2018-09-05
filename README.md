@@ -52,6 +52,10 @@ Steps:
     - Label each link from 0 (ground) to n
     - Define directions for the positive Z axes (collinear to each joint axis, and shifted to one common point for the gripper joints)
     - Define directions for the positive X axes (the X axis is defined by the common normals between Zi-1 and Zi)
+    - The final sketch looks like this:
+![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/KR210-DH-parameters-IMG1.png "Robot Arm DH-Parameter Sketch")
+
+  
 - Complete the DH parameter table in accordance to the manipulator configuration that was determined:
     - Location (the "a's"):
         - a1 is the distance from Z1 to Z2 measured along X1 = 0.35
@@ -79,7 +83,7 @@ Steps:
     - We got so far:
 ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/KR210-DH-parameters-table-so-far.jpg "DH-Parameter Table So Far Image")
         
-    - We get numerical values for the a's and d's from the URDF file:2
+    - We get numerical values for the a's and d's from the URDF file:
     - Note that for joint3 we got an constant offset of -90° between X1 and X2. Due to this we map the "a" values from the "x" value in the URDF file until joint2 and then we map the "z" values to our "a" values. For the "d" values it is the other way around.
 ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/KR210-reference-frame-URDF-to-DH-convension.jpg "Reference frame URDF to DH-convension")
 
@@ -91,7 +95,7 @@ Steps:
              alpha3: -pi/2, a3: -0.054, d4: 1.5,
              alpha4: pi/2, a4: 0, d5: 0,
              alpha5: -pi/2, a5: 0, d6: 0,
-             alpha6: 0, a6: 0, d7: 0.303, q7: 0}h
+             alpha6: 0, a6: 0, d7: 0.303, q7: 0}
 ```
 - Create individual transformation matrices
 - Substitute the DH table values into the expression with the subs method
