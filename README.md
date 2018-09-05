@@ -10,42 +10,11 @@ Disclaimer: please refer to the original repository for the second project in th
 ### Dependencies:
 You should have a Desktop-Full Install of ROS Kinetic and MoveIt!
 
-
-### Running the project:
-
-You can launch the project by
-```sh
-$ cd ~/catkin_ws/src/RoboND-Kinematics-Project/kuka_arm/scripts
-$ ./safe_spawner.sh
-```
-
-You will also need to run the Inverse Kinematics scrip separetely by:
-```sh
-$ cd ~/catkin_ws/src/RoboND-Kinematics-Project/kuka_arm/scripts
-$ rosrun kuka_arm IK_server.py
-```
-Note: the **demo** flag has to be set to _"false"_ in `inverse_kinematics.launch` file under /RoboND-Kinematics-Project/kuka_arm/launch
-
-This should be the default value, so there should be no need to make any changes when running the project for the first time. 
-
-
-Once Gazebo and rviz are up and running, make sure you see following in the gazebo world:
-
-	- Robot
-	- Shelf
-	- Blue cylindrical target in one of the shelves
-	- Dropbox right next to the robot
-	
-
-Once all these items are confirmed, open rviz window, hit Next or Continue button.
-
-
-
 ### First part of implementation 
 **Goal is to calculate our DH Parameters table for the KUKA KR210 Robotic Arm:**
 
 Steps:
-- Create symbols for joint variables
+- Create SymPy symbols for joint variables
 - Sketch the manipulator in its zero configuration for identifiying each parameter
     - Label the joints from 1 to n
     - Draw line on the centerline of each joint axis (cylinder center)
@@ -137,7 +106,7 @@ Steps:
 **Goal is to obtain individual transformation matrices from our calculated DH Parameters table:**
 
 
-Steps (Please see **IK_server.py** for the specific implementation in Python):
+Steps (please see **IK_server.py** for the specific implementation in Python):
 - Create individual transformation matrices
 - Substitute the DH table values into the expression with the subs method
 - Create the transformaton matrix from the base frame to the end effector by composing the individual link transforms
@@ -150,7 +119,7 @@ Steps (Please see **IK_server.py** for the specific implementation in Python):
 ### Third part of implementation
 **Goal is to calculate the joint angles based on the position and orientation of the end-effector:**
 
-Steps (Please see **IK_server.py** for the specific implementation in Python):
+Steps (please see **IK_server.py** for the specific implementation in Python):
 - Get end effector rotation matrix
 - Create symbols for calculating the end effector rotation matrix
 - Calculate each rotation matrix about each axis
@@ -177,3 +146,35 @@ Finally calculate joint angles (thetas) using the Geometric IK method:
 alt="YouTube Video" width="240" height="180" border="10" /></a>
 
 - Click on image above or visit this link: https://www.youtube.com/watch?v=_KVFwSVJTrQ
+
+
+### Running the project:
+
+You can launch the project by
+```sh
+$ cd ~/catkin_ws/src/RoboND-Kinematics-Project/kuka_arm/scripts
+$ ./safe_spawner.sh
+```
+
+You will also need to run the Inverse Kinematics scrip separetely by:
+```sh
+$ cd ~/catkin_ws/src/RoboND-Kinematics-Project/kuka_arm/scripts
+$ rosrun kuka_arm IK_server.py
+```
+Note: the **demo** flag has to be set to _"false"_ in `inverse_kinematics.launch` file under /RoboND-Kinematics-Project/kuka_arm/launch
+
+This should be the default value, so there should be no need to make any changes when running the project for the first time. 
+
+
+Once Gazebo and rviz are up and running, make sure you see following in the gazebo world:
+
+	- Robot
+	- Shelf
+	- Blue cylindrical target in one of the shelves
+	- Dropbox right next to the robot
+	
+
+Once all these items are confirmed, open rviz window, hit Next (or Continue) button.
+
+
+
