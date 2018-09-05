@@ -42,7 +42,7 @@ Once all these items are confirmed, open rviz window, hit Next or Continue butto
 
 
 ### First part of implementation 
-**Goal is to obtain individual transformation matrices from our calculated DH Parameters table:**
+**Goal is to calculate our DH Parameters table for the KUKA KR210 Robotic Arm:**
 
 Steps:
 - Create symbols for joint variables
@@ -56,7 +56,7 @@ Steps:
 ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/KR210-DH-parameters-IMG1.png "Robot Arm DH-Parameter Sketch")
 
   
-- Complete the DH parameter table in accordance to the manipulator configuration that was determined:
+- Complete the DH parameter table in accordance to the manipulator configuration that was determined using the sketch:
     - Location (the "a's"):
         - a1 is the distance from Z1 to Z2 measured along X1 = 0.35
         - a2 is the distance from Z2 to Z3 measured along X2 = 1.25
@@ -80,14 +80,49 @@ Steps:
         - α4, angle between Z4 and Z5 measured about x4 = 90
         - α5, angle between Z5 and Z6 measured about x5 = -90
         - α6, angle between Z6 and ZG measured about x6 = 0
-    - We got so far:
+    - We got so far a semi-populated DH-Parameter table:
 ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/KR210-DH-parameters-table-so-far.jpg "DH-Parameter Table So Far Image")
         
-    - We get numerical values for the a's and d's from the URDF file:
+    - Now get numerical values for the a's and d's from the **kr210.urdf.xacro** file
+      (Script shortened for brevity):
+
+	<!-- joints -->
+	  <joint name="fixed_base_joint" type="fixed"> ...
+	    <origin xyz="0 0 0" rpy="0 0 0"/>
+	  </joint>
+	  <joint name="joint_1" type="revolute"> ...
+	    <origin xyz="0 0 0.33" rpy="0 0 0"/>
+	    <axis xyz="0 0 1"/> ...
+	  </joint>
+	  <joint name="joint_2" type="revolute">
+	    <origin xyz="0.35 0 0.42" rpy="0 0 0"/> ...
+	    <axis xyz="0 1 0"/> ...
+	  </joint>
+	  <joint name="joint_3" type="revolute">
+	    <origin xyz="0 0 1.25" rpy="0 0 0"/> ...
+	    <axis xyz="0 1 0"/> ...
+	  </joint>
+	  <joint name="joint_4" type="revolute">
+	    <origin xyz="0.96 0 -0.054" rpy="0 0 0"/> ...
+	    <axis xyz="1 0 0"/> ...
+	  </joint>
+	  <joint name="joint_5" type="revolute">
+	    <origin xyz="0.54 0 0" rpy="0 0 0"/> ...
+	    <axis xyz="0 1 0"/> ...
+	  </joint>
+	  <joint name="joint_6" type="revolute">
+	    <origin xyz="0.193 0 0" rpy="0 0 0"/> ...
+	    <axis xyz="1 0 0"/> ...
+	  </joint>
+
+
+
     - Note that for joint3 we got an constant offset of -90° between X1 and X2. Due to this we map the "a" values from the "x" value in the URDF file until joint2 and then we map the "z" values to our "a" values. For the "d" values it is the other way around.
 ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/KR210-reference-frame-URDF-to-DH-convension.jpg "Reference frame URDF to DH-convension")
 
+
     - In code we can now establish a dictionary of our known DH parameter quantities:
+
 ```
         s = {alpha0: 0, a0: 0, d1: 0.75,
              alpha1: -pi/2, a1: 0.35, d2: 0, q2: q2-pi/2,
@@ -97,6 +132,12 @@ Steps:
              alpha5: -pi/2, a5: 0, d6: 0,
              alpha6: 0, a6: 0, d7: 0.303, q7: 0}
 ```
+
+### Second part of implementation
+**Goal is to obtain individual transformation matrices from our calculated DH Parameters table:**
+
+
+Steps (Please see **IK_server.py** for the specific implementation in Python):
 - Create individual transformation matrices
 - Substitute the DH table values into the expression with the subs method
 - Create the transformaton matrix from the base frame to the end effector by composing the individual link transforms
@@ -106,10 +147,10 @@ Steps:
 - Extract end-effector position (px,py,pz) and orientation (roll, pitch, yaw) from the request
 
 
-### Second part of implementation 
+### Third part of implementation
 **Goal is to calculate the joint angles based on the position and orientation of the end-effector:**
 
-Steps:
+Steps (Please see **IK_server.py** for the specific implementation in Python):
 - Get end effector rotation matrix
 - Create symbols for calculating the end effector rotation matrix
 - Calculate each rotation matrix about each axis
@@ -120,15 +161,15 @@ Steps:
 - Now calculate the wrist center using the end-effector POSITION (EE) and the end-effector ROTATION (ROT_EE)
 
 Finally calculate joint angles (thetas) using the Geometric IK method:
-- Calculate theta1 using the wrist center
+- Calculate **theta1** using the wrist center
 - Do a side-side-side triangle calculation for theta2 and theta3
 - Calculate sides a, b and c
 - Calculate correponding angles a, b and c
-- Derive theta2 and theta3
+- Derive **theta2** and **theta3**
 - Get the rotation matrix from base_link to link3 by multiplying the rotation matrices extracted from the transformation matrices
 - Substitute the theta1,2,3 values into the rotation matrix from base_link to link3 using the subs method
 - Calculate the rotation matrix from three to six. Take the rotation matrix of the end effector and multiply it by the inverse of the rotation matrix from base_link to link3
-- As last step calculate theta4, theta5 and theta6
+- As last step calculate **theta4**, **theta5** and **theta6**
 
 
 ### YouTube video
