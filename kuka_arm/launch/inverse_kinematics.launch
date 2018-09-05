@@ -8,7 +8,7 @@
     <!-- cd ~/catkin_ws/src/RoboND-Kinematics-Project/kuka_arm/scripts -->
     <!-- rosrun kuka_arm IK_server.py -->
 
-    <param name="demo" value="true" type="bool"/>
+    <param name="demo" value="false" type="bool"/>
 
   </node>
 </launch>
