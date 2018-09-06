@@ -7,11 +7,11 @@ I programmed the inverse kinematics for simulated KUKA KR210 robot arm. It grasp
 
 Disclaimer: please refer to the original repository for the second project in the Udacity Robotics Nanodegree found here: https://github.com/udacity/RoboND-Kinematics-Project
 
-### Dependencies:
+## Dependencies:
 - You should have a Desktop-Full Install of ROS Kinetic and MoveIt!
 - SymPy
 
-### First part of implementation 
+## First part of implementation: DH Parameters
 **Goal is to calculate our DH Parameters table for the KUKA KR210 Robotic Arm:**
 
 Steps:
@@ -107,10 +107,10 @@ Steps:
              alpha6: 0, a6: 0, d7: 0.303, q7: 0}
 ```
 
-### Second part of implementation
+## Second part of implementation: Forward Kinematics
 **Goal is to obtain the position of the end-effector by calculating the individual transformation matrices from our calculated DH Parameters table:**
 
-Steps (please see **IK_server.py** for the specific implementation in Python):
+Steps (please see **IK_server.py** for the full implementation in Python):
 - Define the individual transformation matrices
   Recall the total transform matrix between adjacent coordinate frames:
   ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/transform-matrix-between-adjacent-coordinate-frames.png "Transform matrix between adjacent coordinate frames")
@@ -163,19 +163,23 @@ Steps (please see **IK_server.py** for the specific implementation in Python):
         T6_G = T6_G.subs(s)
 ```
 - Create the transformation matrix from the base frame to the end effector by composing the individual link transforms
+  Foward Kinematics is the complete transform from 0 to EE:
 ```
         T0_G = T0_1 * T1_2 * T2_3 * T3_4 * T4_5 * T5_6 * T6_G
 ```
 - Initialize an empty list to be used as service response
 - Start a loop to go through all the end-effector poses received from the request
 - Get only trajectory points (positions) from the service message (it also contains velocities, accelerations, and efforts)
-- Extract end-effector position (px,py,pz) and orientation (roll, pitch, yaw) from the request
 
-
-### Third part of implementation
+## Third part of implementation: Inverse Kinematics
 **Goal is to calculate the joint angles based on the position and orientation of the end-effector:**
 
-Steps (please see **IK_server.py** for the specific implementation in Python):
+Steps (please see **IK_server.py** for the full implementation in Python):
+
+- Extract one end-effector position (px,py,pz) and orientation (roll, pitch, yaw) from the request
+
+### Inverse Orientation Kinematics
+
 - Calculate the rotation of the end effector about its axes:
 
   - Create SymPy symbols for calculating the end effector rotation matrix
@@ -214,7 +218,7 @@ r, p, y = symbols('r p y')
                             [     0,       0, 1]]) # YAW
 ```
 
-  - Obtain one single rotation matrix for the gripper by multiplying the yaw, pitch, and roll rotation matrices
+  - Next obtain one single rotation matrix for the gripper by multiplying the yaw, pitch, and roll rotation matrices
 
   ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/one-single-rotation-matrix.gif "Obtain one single rotation matrix")
 ``` 
@@ -223,6 +227,9 @@ ROT_EE = ROT_z * ROT_y * ROT_x
 
 - Compensate for rotation discrepancy between DH parameters and Gazebo
 - Apply rotation error correction to align our DH parameters with that of the URDF file
+
+### Inverse Position Kinematics 
+
 - Create a matrix of the gripper position from the positions extracted from the end-effector poses received from the request
 - Now calculate the wrist center using the end-effector POSITION (EE) and the end-effector ROTATION (ROT_EE)
 
@@ -238,14 +245,14 @@ Finally calculate joint angles (thetas) using the Geometric IK method:
 - As last step calculate **theta4**, **theta5** and **theta6**
 
 
-### YouTube video
+## YouTube Video
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=_KVFwSVJTrQ" target="_blank"><img src="http://img.youtube.com/vi/_KVFwSVJTrQ/0.jpg" 
 alt="YouTube Video" width="240" height="180" border="10" /></a>
 
 - Click on image above or visit this link: https://www.youtube.com/watch?v=_KVFwSVJTrQ
 
 
-### Running the project:
+## Running the project
 
 You can launch the project by
 ```sh
