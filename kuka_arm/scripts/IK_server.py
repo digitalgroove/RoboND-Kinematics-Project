@@ -162,9 +162,9 @@ def handle_calculate_IK(req):
             #
             # Side-side-side triangle calculation for theta2 and theta3
             # Calculate sides a, b and c
-            side_a = 1.501
+            side_a = 1.501  # known distance between joint3 and the wrist center
             side_b = sqrt(pow((sqrt(WC[0] * WC[0] + WC[1] * WC[1]) - 0.35), 2) + pow((WC[2] - 0.75), 2))
-            side_c = 1.25
+            side_c = 1.25 # known distance between joint2 and joint3
             # 
 	    # Calculate correponding angles a, b and c
             angle_a = acos((side_b * side_b + side_c * side_c - side_a * side_a) / (2 * side_b * side_c))
