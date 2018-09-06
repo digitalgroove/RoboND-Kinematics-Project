@@ -5,13 +5,26 @@ I programmed the inverse kinematics for simulated KUKA KR210 robot arm. It grasp
 
 ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/Pick_and_Place_Image.png "Robotic Arm Image")
 
+**Screenshot of the completed pick and place process**
+
 Disclaimer: please refer to the original repository for the second project in the Udacity Robotics Nanodegree found here: https://github.com/udacity/RoboND-Kinematics-Project
 
-## Dependencies:
+#### Table of Contents
+1. Dependencies
+2. First part of implementation: DH Parameters
+3. Second part of implementation: Forward Kinematics
+4. Third part of implementation: Inverse Kinematics
+   1. Decouple Inverse Kinematics: calculate the Wrist Center
+   2. Inverse Position Kinematics
+   3. Inverse Orientation Kinematics
+5. YouTube Video
+6. Running the project
+
+## 1. Dependencies
 - You should have a Desktop-Full Install of ROS Kinetic and MoveIt!
 - SymPy
 
-## First part of implementation: DH Parameters
+## 2. First part of implementation: DH Parameters
 **Goal is to calculate our DH Parameters table for the KUKA KR210 Robotic Arm.**
 
 Steps:
@@ -107,7 +120,7 @@ Steps:
              alpha6: 0, a6: 0, d7: 0.303, q7: 0}
 ```
 
-## Second part of implementation: Forward Kinematics
+## 3. Second part of implementation: Forward Kinematics
 **Goal is to obtain the position of the end-effector by calculating the individual transformation matrices from our calculated DH Parameters table.**
 
 Steps (please see **IK_server.py** for the full implementation in Python):
@@ -171,7 +184,7 @@ Steps (please see **IK_server.py** for the full implementation in Python):
 - Start a loop to go through all the end-effector poses received from the request
 - Get only trajectory points (positions) from the service message (it also contains velocities, accelerations, and efforts)
 
-## Third part of implementation: Inverse Kinematics
+## 4.Third part of implementation: Inverse Kinematics
 **Goal is to calculate the joint angles based on the position and orientation of the end-effector.**
 
 Steps (please see **IK_server.py** for the full implementation in Python):
@@ -187,7 +200,7 @@ pz = req.poses[x].position.z
        req.poses[x].orientation.z, req.poses[x].orientation.w])
 ```
 
-### Decouple Inverse Kinematics: calculate the Wrist Center
+### i.Decouple Inverse Kinematics: calculate the Wrist Center
 
 In order to decouple the inverse kinematics into a **Inverse Position Kinematics** and **Inverse Orientation Kinematics** problem we need first to calculate the **Wrist Center**
 
@@ -254,7 +267,7 @@ ROT_EE = ROT_EE * Rot_Error
 WC = EE - (0.303) * ROT_EE[:,2]
 ```
 
-### Inverse Position Kinematics 
+### ii.Inverse Position Kinematics 
 
 Next we calculate the joint angles 1, 2 and 3 (thetas1, 2, 3) using the Geometric Inverse Kinematics method. We do not care about the orientation of the gripper at this point.
 
@@ -297,7 +310,7 @@ angle_c = acos((side_a * side_a + side_b * side_b - side_c * side_c) / (2 * side
             theta3 = pi / 2 - (angle_b + 0.036)
 
 
-### Inverse Orientation Kinematics
+### iii.Inverse Orientation Kinematics
 
 - Get the rotation matrix from base_link to link3 by multiplying the rotation matrices extracted from the transformation matrices
 
@@ -320,14 +333,14 @@ angle_c = acos((side_a * side_a + side_b * side_b - side_c * side_c) / (2 * side
             theta5 = atan2(sqrt(R3_6[0,2]*R3_6[0,2] + R3_6[2,2]*R3_6[2,2]),R3_6[1,2])
             theta6 = atan2(-R3_6[1,1], R3_6[1,0])
 
-## YouTube Video
+## 5.YouTube Video
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=_KVFwSVJTrQ" target="_blank"><img src="http://img.youtube.com/vi/_KVFwSVJTrQ/0.jpg" 
 alt="YouTube Video" width="240" height="180" border="10" /></a>
 
 - Click on image above or visit this link: https://www.youtube.com/watch?v=_KVFwSVJTrQ
 
 
-## Running the project
+## 6.Running the project
 
 You can launch the project by
 ```sh
