@@ -12,7 +12,7 @@ Disclaimer: please refer to the original repository for the second project in th
 - SymPy
 
 ## First part of implementation: DH Parameters
-**Goal is to calculate our DH Parameters table for the KUKA KR210 Robotic Arm:**
+**Goal is to calculate our DH Parameters table for the KUKA KR210 Robotic Arm.**
 
 Steps:
 - Create SymPy symbols for joint variables
@@ -108,7 +108,7 @@ Steps:
 ```
 
 ## Second part of implementation: Forward Kinematics
-**Goal is to obtain the position of the end-effector by calculating the individual transformation matrices from our calculated DH Parameters table:**
+**Goal is to obtain the position of the end-effector by calculating the individual transformation matrices from our calculated DH Parameters table.**
 
 Steps (please see **IK_server.py** for the full implementation in Python):
 - Define the individual transformation matrices
@@ -172,7 +172,7 @@ Steps (please see **IK_server.py** for the full implementation in Python):
 - Get only trajectory points (positions) from the service message (it also contains velocities, accelerations, and efforts)
 
 ## Third part of implementation: Inverse Kinematics
-**Goal is to calculate the joint angles based on the position and orientation of the end-effector:**
+**Goal is to calculate the joint angles based on the position and orientation of the end-effector.**
 
 Steps (please see **IK_server.py** for the full implementation in Python):
 
@@ -180,14 +180,14 @@ Steps (please see **IK_server.py** for the full implementation in Python):
 
 ### Inverse Orientation Kinematics
 
-- Calculate the rotation of the end effector about its axes:
+Calculate the rotation of the end effector about its axes:
 
-  - Create SymPy symbols for calculating the end effector rotation matrix
+- Create SymPy symbols for calculating the end effector rotation matrix
 ```
 r, p, y = symbols('r p y')
 ```
 
-  - Calculate each rotation matrix about each axis
+- Calculate each rotation matrix about each axis
 
   A **roll** is a counterclockwise rotation of gamma about the x-axis. The **roll** rotation matrix is given by:
 
@@ -218,7 +218,7 @@ r, p, y = symbols('r p y')
                             [     0,       0, 1]]) # YAW
 ```
 
-  - Next obtain one single rotation matrix for the gripper by multiplying the yaw, pitch, and roll rotation matrices
+- Next obtain one single rotation matrix for the gripper by multiplying the yaw, pitch, and roll rotation matrices
 
   ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/one-single-rotation-matrix.gif "Obtain one single rotation matrix")
 ``` 
@@ -233,12 +233,46 @@ ROT_EE = ROT_z * ROT_y * ROT_x
 - Create a matrix of the gripper position from the positions extracted from the end-effector poses received from the request
 - Now calculate the wrist center using the end-effector POSITION (EE) and the end-effector ROTATION (ROT_EE)
 
-Finally calculate joint angles (thetas) using the Geometric IK method:
-- Calculate **theta1** using the wrist center
-- Do a side-side-side triangle calculation for theta2 and theta3
-- Calculate sides a, b and c
-- Calculate correponding angles a, b and c
-- Derive **theta2** and **theta3**
+Finally calculate joint angles (thetas) using the Geometric Inverse Kinematics method:
+- Calculate **theta1** using the position of the wrist center (WC)
+  Note that WC is a column vector that contains the cartesian coordinates x,y,z of the wrist center
+  The orientation of joint1 is therefore the orientation of the wrist center
+``` 
+theta1 = atan2(WC[1],WC[0])  # atan2(WC_y, WC_x)
+```
+**Next calculate theta2 and theta3**
+
+  Note that joint2 (theta2) and joint3 (theta3) have to accomodate so that the arms of the robot fit between the position of the wrist center and the position of joint2.
+  We do not care about the orientation of the gripper at this point.
+  ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/Triangle_for_derivation_of_theta_2_and_theta_3.png "Triangle for derivation of theta2 and theta3")
+
+  We have to do a side-side-side triangle calculation.
+
+- Calculate sides a, b and c:
+``` 
+side_a = 1.501  # known distance between joint3 and the wrist center
+side_b = sqrt(pow((sqrt(WC[0] * WC[0] + WC[1] * WC[1]) - 0.35), 2) + pow((WC[2] - 0.75), 2))
+side_c = 1.25 # known distance between joint2 and joint3
+```
+  
+- Calculate corresponding angles a, b and c:
+
+``` 
+angle_a = acos((side_b * side_b + side_c * side_c - side_a * side_a) / (2 * side_b * side_c))
+angle_b = acos((side_a * side_a + side_c * side_c - side_b * side_b) / (2 * side_a * side_c))
+angle_c = acos((side_a * side_a + side_b * side_b - side_c * side_c) / (2 * side_a * side_b))
+```
+
+- Derive **theta2**:
+    ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/Derivation_of_theta_2.png "Derivation of theta2")
+``` 
+theta2 = pi / 2 - angle_a - atan2(WC[2] - 0.75, sqrt(WC[0] * WC[0] + WC[1] * WC [1]) - 0.35)
+```
+
+- Similarly we derive **theta3**:
+``` 
+theta3 = pi / 2 - (angle_b + 0.036)
+```
 - Get the rotation matrix from base_link to link3 by multiplying the rotation matrices extracted from the transformation matrices
 - Substitute the theta1,2,3 values into the rotation matrix from base_link to link3 using the subs method
 - Calculate the rotation matrix from three to six. Take the rotation matrix of the end effector and multiply it by the inverse of the rotation matrix from base_link to link3
