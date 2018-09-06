@@ -8,13 +8,18 @@ I programmed the inverse kinematics for simulated KUKA KR210 robot arm. It grasp
 Disclaimer: please refer to the original repository for the second project in the Udacity Robotics Nanodegree found here: https://github.com/udacity/RoboND-Kinematics-Project
 
 ### Dependencies:
-You should have a Desktop-Full Install of ROS Kinetic and MoveIt!
+- You should have a Desktop-Full Install of ROS Kinetic and MoveIt!
+- SymPy
 
 ### First part of implementation 
 **Goal is to calculate our DH Parameters table for the KUKA KR210 Robotic Arm:**
 
 Steps:
 - Create SymPy symbols for joint variables
+        q1, q2, q3, q4, q5, q6, q7 = symbols('q1:8') # theta_i
+        d1, d2, d3, d4, d5, d6, d7 = symbols('d1:8')
+        a0, a1, a2, a3, a4, a5, a6 = symbols('a0:7')
+        alpha0, alpha1, alpha2, alpha3, alpha4, alpha5, alpha6 = symbols('alpha0:7')
 - Sketch the manipulator in its zero configuration for identifiying each parameter
     - Label the joints from 1 to n
     - Draw line on the centerline of each joint axis (cylinder center)
@@ -103,13 +108,64 @@ Steps:
 ```
 
 ### Second part of implementation
-**Goal is to obtain individual transformation matrices from our calculated DH Parameters table:**
-
+**Goal is to obtain the position of the end-effector by calculating the individual transformation matrices from our calculated DH Parameters table:**
 
 Steps (please see **IK_server.py** for the specific implementation in Python):
-- Create individual transformation matrices
-- Substitute the DH table values into the expression with the subs method
-- Create the transformaton matrix from the base frame to the end effector by composing the individual link transforms
+- Define the individual transformation matrices
+  Recall the total transform matrix between adjacent coordinate frames:
+  ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/transform-matrix-between-adjacent-coordinate-frames.png "Transform matrix between adjacent coordinate frames")
+
+  It is the best to first create transforms symbolically, then substitute numerical values for the non-zero terms as the last step.
+
+        T0_1 = Matrix([[            cos(q1),            -sin(q1),            0,              a0],
+                       [sin(q1)*cos(alpha0), cos(q1)*cos(alpha0), -sin(alpha0), -sin(alpha0)*d1],
+                       [sin(q1)*sin(alpha0), cos(q1)*sin(alpha0),  cos(alpha0),  cos(alpha0)*d1],
+                       [                  0,                   0,            0,               1]])
+
+        T1_2 = Matrix([[           cos(q2),            -sin(q2),            0,              a1],
+                      [sin(q2)*cos(alpha1), cos(q2)*cos(alpha1), -sin(alpha1), -sin(alpha1)*d2],
+                      [sin(q2)*sin(alpha1), cos(q2)*sin(alpha1),  cos(alpha1),  cos(alpha1)*d2],
+                      [                  0,                   0,            0,               1]])
+
+
+        T2_3 = Matrix([[           cos(q3),            -sin(q3),            0,              a2],
+                      [sin(q3)*cos(alpha2), cos(q3)*cos(alpha2), -sin(alpha2), -sin(alpha2)*d3],
+                      [sin(q3)*sin(alpha2), cos(q3)*sin(alpha2),  cos(alpha2),  cos(alpha2)*d3],
+                      [                  0,                   0,            0,               1]])
+
+        T3_4 = Matrix([[           cos(q4),            -sin(q4),            0,              a3],
+                      [sin(q4)*cos(alpha3), cos(q4)*cos(alpha3), -sin(alpha3), -sin(alpha3)*d4],
+                      [sin(q4)*sin(alpha3), cos(q4)*sin(alpha3),  cos(alpha3),  cos(alpha3)*d4],
+                      [                  0,                   0,            0,               1]])
+
+        T4_5 = Matrix([[           cos(q5),            -sin(q5),            0,              a4],
+                      [sin(q5)*cos(alpha4), cos(q5)*cos(alpha4), -sin(alpha4), -sin(alpha4)*d5],
+                      [sin(q5)*sin(alpha4), cos(q5)*sin(alpha4),  cos(alpha4),  cos(alpha4)*d5],
+                      [                  0,                   0,            0,               1]])
+
+        T5_6 = Matrix([[           cos(q6),            -sin(q6),            0,              a5],
+                      [sin(q6)*cos(alpha5), cos(q6)*cos(alpha5), -sin(alpha5), -sin(alpha5)*d6],
+                      [sin(q6)*sin(alpha5), cos(q6)*sin(alpha5),  cos(alpha5),  cos(alpha5)*d6],
+                      [                  0,                   0,            0,               1]])
+
+        T6_G = Matrix([[           cos(q7),            -sin(q7),            0,              a6],
+                      [sin(q7)*cos(alpha6), cos(q7)*cos(alpha6), -sin(alpha6), -sin(alpha6)*d7],
+                      [sin(q7)*sin(alpha6), cos(q7)*sin(alpha6),  cos(alpha6),  cos(alpha6)*d7],
+                      [                  0,                   0,            0,               1]])
+- Now create the individual transformation matrices by substituting the DH table values into the expression with the SymPy subs method
+```
+        T0_1 = T0_1.subs(s)
+        T1_2 = T1_2.subs(s)
+        T2_3 = T2_3.subs(s)
+        T3_4 = T3_4.subs(s)
+        T4_5 = T4_5.subs(s)
+        T5_6 = T5_6.subs(s)
+        T6_G = T6_G.subs(s)
+```
+- Create the transformation matrix from the base frame to the end effector by composing the individual link transforms
+```
+        T0_G = T0_1 * T1_2 * T2_3 * T3_4 * T4_5 * T5_6 * T6_G
+```
 - Initialize an empty list to be used as service response
 - Start a loop to go through all the end-effector poses received from the request
 - Get only trajectory points (positions) from the service message (it also contains velocities, accelerations, and efforts)
@@ -120,10 +176,51 @@ Steps (please see **IK_server.py** for the specific implementation in Python):
 **Goal is to calculate the joint angles based on the position and orientation of the end-effector:**
 
 Steps (please see **IK_server.py** for the specific implementation in Python):
-- Get end effector rotation matrix
-- Create symbols for calculating the end effector rotation matrix
-- Calculate each rotation matrix about each axis
-- Obtain one single rotation matrix for the gripper by multiplying the yaw, pitch, and roll rotation matrices
+- Calculate the rotation of the end effector about its axes:
+
+  - Create SymPy symbols for calculating the end effector rotation matrix
+```
+r, p, y = symbols('r p y')
+```
+
+  - Calculate each rotation matrix about each axis
+
+  A **roll** is a counterclockwise rotation of gamma about the x-axis. The **roll** rotation matrix is given by:
+
+  ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/roll-rotation-matrix.gif "Rotation about the x-axis") 
+
+```
+            ROT_x = Matrix([[1,      0,       0],
+                            [0, cos(r), -sin(r)],
+                            [0, sin(r),  cos(r)]]) # ROLL
+```
+  A **pitch** is a counterclockwise rotation of beta about the y-axis. The **pitch** rotation matrix is given by:
+
+  ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/pitch-rotation-matrix.gif "Rotation about the y-axis") 
+
+
+```
+            ROT_y = Matrix([[ cos(p),      0,  sin(p)],
+                            [      0,      1,       0],
+                            [-sin(p),      0,  cos(p)]]) # PITCH
+```
+  A **yaw** is a counterclockwise rotation of α (alpha) about the z-axis. The **yaw** rotation matrix is given by:
+
+  ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/yaw-rotation-matrix.gif "Rotation about the z-axis")
+
+```
+            ROT_z = Matrix([[cos(y), -sin(y), 0],
+                            [sin(y),  cos(y), 0],
+                            [     0,       0, 1]]) # YAW
+```
+
+  - Obtain one single rotation matrix for the gripper by multiplying the yaw, pitch, and roll rotation matrices
+
+  ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/one-single-rotation-matrix.gif "Obtain one single rotation matrix")
+``` 
+ROT_EE = ROT_z * ROT_y * ROT_x
+```
+
 - Compensate for rotation discrepancy between DH parameters and Gazebo
 - Apply rotation error correction to align our DH parameters with that of the URDF file
 - Create a matrix of the gripper position from the positions extracted from the end-effector poses received from the request
