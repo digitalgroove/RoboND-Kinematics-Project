@@ -177,10 +177,21 @@ Steps (please see **IK_server.py** for the full implementation in Python):
 Steps (please see **IK_server.py** for the full implementation in Python):
 
 - Extract one end-effector position (px,py,pz) and orientation (roll, pitch, yaw) from the request
+```
+px = req.poses[x].position.x
+py = req.poses[x].position.y
+pz = req.poses[x].position.z
 
-### Inverse Orientation Kinematics
+(roll, pitch, yaw) = tf.transformations.euler_from_quaternion(
+     [req.poses[x].orientation.x, req.poses[x].orientation.y,
+       req.poses[x].orientation.z, req.poses[x].orientation.w])
+```
 
-Calculate the rotation of the end effector about its axes:
+### Decouple Inverse Kinematics: calculate the Wrist Center
+
+In order to decouple the inverse kinematics into a **Inverse Position Kinematics** and **Inverse Orientation Kinematics** problem we need first to calculate the **Wrist Center**
+
+Calculate the rotation of the end effector about its axes using the orientation information received from the request:
 
 - Create SymPy symbols for calculating the end effector rotation matrix
 ```
@@ -226,14 +237,27 @@ ROT_EE = ROT_z * ROT_y * ROT_x
 ```
 
 - Compensate for rotation discrepancy between DH parameters and Gazebo
-- Apply rotation error correction to align our DH parameters with that of the URDF file
+  Apply rotation error correction to align our DH parameters with that of the URDF file
+``` 
+Rot_Error = ROT_z.subs(y, radians(180)) * ROT_y.subs(p, radians(-90))
+ROT_EE = ROT_EE * Rot_Error
+```
+
+- Create a matrix of the gripper position from the positions extracted from the end-effector poses received from the request
+            ROT_EE = ROT_EE.subs({'r':roll, 'p':pitch, 'y':yaw})
+            EE = Matrix([[px],
+                        [py],
+                        [pz]])
+
+- Now we can calculate the **wrist center** using the end-effector POSITION (EE) and the end-effector ROTATION (ROT_EE)
+``` 
+WC = EE - (0.303) * ROT_EE[:,2]
+```
 
 ### Inverse Position Kinematics 
 
-- Create a matrix of the gripper position from the positions extracted from the end-effector poses received from the request
-- Now calculate the wrist center using the end-effector POSITION (EE) and the end-effector ROTATION (ROT_EE)
+Next we calculate the joint angles 1, 2 and 3 (thetas1, 2, 3) using the Geometric Inverse Kinematics method. We do not care about the orientation of the gripper at this point.
 
-Finally calculate joint angles (thetas) using the Geometric Inverse Kinematics method:
 - Calculate **theta1** using the position of the wrist center (WC)
   Note that WC is a column vector that contains the cartesian coordinates x,y,z of the wrist center
   The orientation of joint1 is therefore the orientation of the wrist center
@@ -243,7 +267,6 @@ theta1 = atan2(WC[1],WC[0])  # atan2(WC_y, WC_x)
 **Next calculate theta2 and theta3**
 
   Note that joint2 (theta2) and joint3 (theta3) have to accomodate so that the arms of the robot fit between the position of the wrist center and the position of joint2.
-  We do not care about the orientation of the gripper at this point.
   ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/Triangle_for_derivation_of_theta_2_and_theta_3.png "Triangle for derivation of theta2 and theta3")
 
   We have to do a side-side-side triangle calculation.
@@ -265,19 +288,37 @@ angle_c = acos((side_a * side_a + side_b * side_b - side_c * side_c) / (2 * side
 
 - Derive **theta2**:
     ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/Derivation_of_theta_2.png "Derivation of theta2")
-``` 
-theta2 = pi / 2 - angle_a - atan2(WC[2] - 0.75, sqrt(WC[0] * WC[0] + WC[1] * WC [1]) - 0.35)
-```
+
+            theta2 = pi / 2 - angle_a - atan2(WC[2] - 0.75, sqrt(WC[0] * WC[0] + WC[1] * WC [1]) - 0.35)
+
 
 - Similarly we derive **theta3**:
-``` 
-theta3 = pi / 2 - (angle_b + 0.036)
-```
-- Get the rotation matrix from base_link to link3 by multiplying the rotation matrices extracted from the transformation matrices
-- Substitute the theta1,2,3 values into the rotation matrix from base_link to link3 using the subs method
-- Calculate the rotation matrix from three to six. Take the rotation matrix of the end effector and multiply it by the inverse of the rotation matrix from base_link to link3
-- As last step calculate **theta4**, **theta5** and **theta6**
+ 
+            theta3 = pi / 2 - (angle_b + 0.036)
 
+
+### Inverse Orientation Kinematics
+
+- Get the rotation matrix from base_link to link3 by multiplying the rotation matrices extracted from the transformation matrices
+
+            R0_3 = T0_1[0:3,0:3] * T1_2[0:3,0:3] * T2_3[0:3,0:3]
+
+- Substitute the real theta1,2,3 values into the SymPy rotation matrix from base_link to link3 using the subs method
+
+            R0_3 = R0_3.evalf(subs={q1: theta1, q2: theta2, q3: theta3})
+
+- Calculate the rotation matrix from three to six. Take the rotation matrix of the end effector and multiply it by the inverse of the rotation matrix from base_link to link3
+
+            R3_6 = R0_3.transpose() * ROT_EE
+
+
+- As last step calculate **theta4**, **theta5** and **theta6**
+  
+  We obtain euler angles for theta4, theta5 and theta6 from rotation matrix R3_6:
+  
+            theta4 = atan2(R3_6[2,2], -R3_6[0,2])
+            theta5 = atan2(sqrt(R3_6[0,2]*R3_6[0,2] + R3_6[2,2]*R3_6[2,2]),R3_6[1,2])
+            theta6 = atan2(-R3_6[1,1], R3_6[1,0])
 
 ## YouTube Video
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=_KVFwSVJTrQ" target="_blank"><img src="http://img.youtube.com/vi/_KVFwSVJTrQ/0.jpg" 
