@@ -1,9 +1,10 @@
 [![Udacity - Robotics NanoDegree Program](https://s3-us-west-1.amazonaws.com/udacity-robotics/Extra+Images/RoboND_flag.png)](https://www.udacity.com/robotics)
 # Robotic arm - Pick & Place project
+Author: Roberto Zegers R.
 
 I programmed the inverse kinematics for simulated KUKA KR210 robot arm. It grasps objects off a shelf and drops them into a container. This is one of the many action that robots have to manage at the Amazon Robotics Challenge.
 
-![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/Pick_and_Place_Image.png "Robotic Arm Image")
+![alt text](docs/imgs/Pick_and_Place_Image.png "Robotic Arm Image")
 
 **Screenshot of the completed pick and place process**
 
@@ -42,7 +43,7 @@ Steps:
     - Define directions for the positive Z axes (collinear to each joint axis, and shifted to one common point for the gripper joints)
     - Define directions for the positive X axes (the X axis is defined by the common normals between Zi-1 and Zi)
     - The final sketch looks like this:
-![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/KR210-DH-parameters-IMG1.png "Robot Arm DH-Parameter Sketch")
+![alt text](docs/imgs/KR210-DH-parameters-IMG1.png "Robot Arm DH-Parameter Sketch")
 
   
 - Complete the DH parameter table in accordance to the manipulator configuration that was determined using the sketch:
@@ -70,7 +71,7 @@ Steps:
         - α5, angle between Z5 and Z6 measured about x5 = -90
         - α6, angle between Z6 and ZG measured about x6 = 0
     - We got so far a semi-populated DH-Parameter table:
-![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/KR210-DH-parameters-table-so-far.jpg "DH-Parameter Table So Far Image")
+![alt text](docs/imgs/KR210-DH-parameters-table-so-far.jpg "DH-Parameter Table So Far Image")
         
     - Now get numerical values for the a's and d's from the **kr210.urdf.xacro** file
       (Script shortened for brevity):
@@ -107,7 +108,7 @@ Steps:
 
 
     - Note that for joint3 we got an constant offset of -90° between X1 and X2. Due to this we map the "a" values from the "x" value in the URDF file until joint2 and then we map the "z" values to our "a" values. For the "d" values it is the other way around.
-![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/KR210-reference-frame-URDF-to-DH-convension.jpg "Reference frame URDF to DH-convension")
+![alt text](docs/imgs/KR210-reference-frame-URDF-to-DH-convension.jpg "Reference frame URDF to DH-convension")
 
 
     - In code we can now establish a dictionary of our known DH parameter quantities:
@@ -128,7 +129,7 @@ Steps:
 Steps (please see **IK_server.py** for the full implementation in Python):
 - Define the individual transformation matrices
   Recall the total transform matrix between adjacent coordinate frames:
-  ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/transform-matrix-between-adjacent-coordinate-frames.png "Transform matrix between adjacent coordinate frames")
+  ![alt text](docs/imgs/transform-matrix-between-adjacent-coordinate-frames.png "Transform matrix between adjacent coordinate frames")
 
   It is the best to first create transforms symbolically, then substitute numerical values for the non-zero terms as the last step.
 
@@ -217,7 +218,7 @@ r, p, y = symbols('r p y')
 
   A **roll** is a counterclockwise rotation of gamma about the x-axis. The **roll** rotation matrix is given by:
 
-  ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/roll-rotation-matrix.gif "Rotation about the x-axis") 
+  ![alt text](docs/imgs/roll-rotation-matrix.gif "Rotation about the x-axis") 
 
 ```
             ROT_x = Matrix([[1,      0,       0],
@@ -226,7 +227,7 @@ r, p, y = symbols('r p y')
 ```
   A **pitch** is a counterclockwise rotation of beta about the y-axis. The **pitch** rotation matrix is given by:
 
-  ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/pitch-rotation-matrix.gif "Rotation about the y-axis") 
+  ![alt text](docs/imgs/pitch-rotation-matrix.gif "Rotation about the y-axis") 
 
 
 ```
@@ -236,7 +237,7 @@ r, p, y = symbols('r p y')
 ```
   A **yaw** is a counterclockwise rotation of α (alpha) about the z-axis. The **yaw** rotation matrix is given by:
 
-  ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/yaw-rotation-matrix.gif "Rotation about the z-axis")
+  ![alt text](docs/imgs/yaw-rotation-matrix.gif "Rotation about the z-axis")
 
 ```
             ROT_z = Matrix([[cos(y), -sin(y), 0],
@@ -246,7 +247,7 @@ r, p, y = symbols('r p y')
 
 - Next obtain one single rotation matrix for the gripper by multiplying the yaw, pitch, and roll rotation matrices
 
-  ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/one-single-rotation-matrix.gif "Obtain one single rotation matrix")
+  ![alt text](docs/imgs/one-single-rotation-matrix.gif "Obtain one single rotation matrix")
 ``` 
 ROT_EE = ROT_z * ROT_y * ROT_x
 ```
@@ -282,7 +283,7 @@ theta1 = atan2(WC[1],WC[0])  # atan2(WC_y, WC_x)
 **Next calculate theta2 and theta3**
 
   Note that joint2 (theta2) and joint3 (theta3) have to accomodate so that the arms of the robot fit between the position of the wrist center and the position of joint2.
-  ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/Triangle_for_derivation_of_theta_2_and_theta_3.png "Triangle for derivation of theta2 and theta3")
+  ![alt text](docs/imgs/Triangle_for_derivation_of_theta_2_and_theta_3.png "Triangle for derivation of theta2 and theta3")
 
   We have to do a side-side-side triangle calculation.
 
@@ -302,7 +303,7 @@ angle_c = acos((side_a * side_a + side_b * side_b - side_c * side_c) / (2 * side
 ```
 
 - Derive **theta2**:
-    ![alt text](https://github.com/digitalgroove/RoboND-Kinematics-Project/blob/master/misc_images/Derivation_of_theta_2.png "Derivation of theta2")
+    ![alt text](docs/imgs/Derivation_of_theta_2.png "Derivation of theta2")
 
             theta2 = pi / 2 - angle_a - atan2(WC[2] - 0.75, sqrt(WC[0] * WC[0] + WC[1] * WC [1]) - 0.35)
 
@@ -339,7 +340,7 @@ angle_c = acos((side_a * side_a + side_b * side_b - side_c * side_c) / (2 * side
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=_KVFwSVJTrQ" target="_blank"><img src="http://img.youtube.com/vi/_KVFwSVJTrQ/0.jpg" 
 alt="YouTube Video" width="240" height="180" border="10" /></a>
 
-- Click on image above or visit this link: https://www.youtube.com/watch?v=_KVFwSVJTrQ
+Click on image above or visit this link: https://www.youtube.com/watch?v=_KVFwSVJTrQ  
 
 
 ## 6.Running the project
@@ -357,10 +358,10 @@ $ rosrun kuka_arm IK_server.py
 ```
 Note: the **demo** flag has to be set to _"false"_ in `inverse_kinematics.launch` file under /RoboND-Kinematics-Project/kuka_arm/launch
 
-This should be the default value, so there should be no need to make any changes when running the project for the first time. 
+This is the default value, so there should be no need to make any changes when running the project for the first time. 
 
 
-Once Gazebo and rviz are up and running, make sure you see following in the gazebo world:
+Once Gazebo and Rviz are up and running, make sure you see following in the Gazebo world:
 
 	- Robot
 	- Shelf
@@ -368,7 +369,7 @@ Once Gazebo and rviz are up and running, make sure you see following in the gaze
 	- Dropbox right next to the robot
 	
 
-Once all these items are confirmed, open rviz window, hit Next (or Continue) button.
+Once all these items are confirmed, open Rviz, then hit Next (or Continue).
 
 
 
